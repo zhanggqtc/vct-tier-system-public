@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>VALORANT 赛事现场掉落体系 · 合作方对外版</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;background:#0a0e13;color:#dde6f0;line-height:1.6;min-height:100vh}
+  .nav{position:sticky;top:0;background:rgba(10,14,19,.95);border-bottom:1px solid #1f2937;padding:14px 32px;z-index:100;backdrop-filter:blur(10px)}
+  .nav a{color:#9ab5d1;text-decoration:none;font-size:13px}
+  .nav a:hover{color:#ff4655}
+  .hero{padding:50px 32px 32px;text-align:center;background:linear-gradient(180deg,#0f1923 0%,#0a0e13 100%);border-bottom:1px solid #1f2937}
+  .hero h1{font-size:38px;background:linear-gradient(135deg,#ff4655,#ffb74d);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:900;letter-spacing:1px;margin-bottom:12px}
+  .hero p{color:#9ab5d1;font-size:14.5px;max-width:700px;margin:0 auto}
+  .container{max-width:1200px;margin:0 auto;padding:32px}
+
+  /* tabs */
+  .tabs{display:flex;gap:4px;margin-bottom:32px;border-bottom:2px solid #1f2937;overflow-x:auto}
+  .tab{padding:14px 24px;background:transparent;border:none;color:#9ab5d1;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;border-bottom:2px solid transparent;margin-bottom:-2px;transition:.2s;white-space:nowrap}
+  .tab:hover{color:#fff}
+  .tab.active{color:#ff4655;border-bottom-color:#ff4655}
+  .tab-content{display:none}
+  .tab-content.active{display:block;animation:fadeIn .3s}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+  .section-title{font-size:22px;font-weight:800;color:#ff4655;margin-bottom:8px;display:flex;align-items:center;gap:10px}
+  .section-title::before{content:'';width:4px;height:22px;background:#ff4655;border-radius:2px}
+  .section-desc{color:#9ab5d1;font-size:13.5px;margin-bottom:24px;padding-left:14px;border-left:2px solid #1f2937}
+
+  /* 通用表格 */
+  .table-wrap{overflow-x:auto;background:#0f1923;border:1px solid #1f2937;border-radius:12px;margin-bottom:24px}
+  table.t{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed;min-width:720px}
+  table.t th,table.t td{padding:14px 14px;border-bottom:1px solid #1f2937;vertical-align:middle;word-break:break-word}
+  table.t th{background:#0a0e13;color:#ff4655;font-weight:800;font-size:11.5px;letter-spacing:.5px;text-transform:uppercase;text-align:center}
+  table.t th:first-child{text-align:left;color:#9ab5d1}
+  table.t td{text-align:center;color:#dde6f0}
+  table.t td:first-child{text-align:left;color:#9ab5d1;font-weight:600}
+  table.t tr:last-child td{border-bottom:none}
+  table.t tr:hover td{background:rgba(255,70,85,.04)}
+  table.t td.num{font-variant-numeric:tabular-nums;font-weight:700}
+
+  .pill{display:inline-block;padding:3px 10px;border-radius:5px;font-size:11px;font-weight:800;white-space:nowrap}
+  .pill.s{background:rgba(255,70,85,.18);color:#ff4655;border:1px solid rgba(255,70,85,.4)}
+  .pill.a{background:rgba(192,132,252,.18);color:#c084fc;border:1px solid rgba(192,132,252,.4)}
+  .pill.b{background:rgba(96,165,250,.18);color:#60a5fa;border:1px solid rgba(96,165,250,.4)}
+  .pill.c{background:rgba(74,222,128,.18);color:#4ade80;border:1px solid rgba(74,222,128,.4)}
+
+  /* 4 级金字塔 */
+  .pyramid{display:flex;flex-direction:column;gap:10px;align-items:center;padding:20px 0;margin-bottom:30px}
+  .pyramid-row{display:flex;align-items:center;width:100%;max-width:1100px;justify-content:center}
+  .tier-bar{flex:1;border-radius:12px;padding:16px 22px;display:flex;align-items:center;justify-content:space-between;border:1px solid;box-shadow:0 4px 16px rgba(0,0,0,.4);transition:.3s;gap:14px}
+  .tier-bar:hover{transform:translateX(6px)}
+  .tier-S{background:linear-gradient(135deg,rgba(255,70,85,.18),rgba(255,183,77,.1));border-color:#ff4655;width:100%}
+  .tier-A{background:linear-gradient(135deg,rgba(192,132,252,.16),rgba(168,85,247,.08));border-color:#c084fc;width:90%}
+  .tier-B{background:linear-gradient(135deg,rgba(96,165,250,.14),rgba(59,130,246,.08));border-color:#60a5fa;width:78%}
+  .tier-C{background:linear-gradient(135deg,rgba(74,222,128,.12),rgba(34,197,94,.06));border-color:#4ade80;width:66%}
+  .tier-left{display:flex;align-items:center;gap:12px;flex-shrink:0;min-width:170px;max-width:240px}
+  .tier-badge{font-size:24px;font-weight:900;width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:'Helvetica Neue',sans-serif;flex-shrink:0}
+  .tier-S .tier-badge{background:#ff4655;color:#0a0e13}
+  .tier-A .tier-badge{background:#c084fc;color:#0a0e13}
+  .tier-B .tier-badge{background:#60a5fa;color:#0a0e13}
+  .tier-C .tier-badge{background:#4ade80;color:#0a0e13}
+  .tier-info h3{font-size:14.5px;color:#fff;margin-bottom:2px;font-weight:800}
+  .tier-info p{font-size:11px;color:#9ab5d1;line-height:1.4}
+  /* 数据三栏 */
+  .tier-stats{display:flex;gap:0;flex:1;justify-content:flex-end;align-items:center}
+  .tier-stat{display:flex;flex-direction:column;align-items:center;padding:0 12px;border-right:1px solid rgba(255,255,255,.08);min-width:72px}
+  .tier-stat:last-child{border-right:none;padding-right:0}
+  .tier-stat .v{font-size:17px;font-weight:900;font-variant-numeric:tabular-nums;line-height:1.1}
+  .tier-stat .v.rate{color:#ff4655}
+  .tier-stat .v.ticket{color:#dde6f0}
+  .tier-stat .v.exp{color:#ffb74d}
+  .tier-stat .v.unit{color:#4ade80}
+  .tier-stat .l{font-size:10px;color:#9ab5d1;margin-top:3px;letter-spacing:.3px;white-space:nowrap}
+  .tier-stat .sub{font-size:9.5px;color:#9ab5d1;margin-top:1px;font-weight:600}
+  .tier-stat .sub.pos{color:#4ade80}
+
+  /* 奖品类型卡 */
+  .prize-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-bottom:24px}
+  .prize-card{background:#0f1923;border:1px solid #1f2937;border-radius:10px;padding:16px 18px;border-left:4px solid #ffb74d}
+  .prize-card.top{border-left-color:#ff4655}
+  .prize-card.mid{border-left-color:#c084fc}
+  .prize-card.base{border-left-color:#4ade80}
+  .prize-card h4{font-size:14px;color:#fff;font-weight:800;margin-bottom:4px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .prize-card .price-tag{font-size:13px;color:#ffb74d;font-weight:800}
+  .prize-card p{font-size:12px;color:#9ab5d1;line-height:1.6}
+
+  /* 掉落方式 */
+  .drop-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-bottom:24px}
+  .drop-card{background:#0f1923;border:1px solid #1f2937;border-radius:12px;padding:18px;border-top:4px solid}
+  .drop-card.fixed{border-top-color:#60a5fa}
+  .drop-card.zonal{border-top-color:#4ade80}
+  .drop-card .icon{font-size:26px;margin-bottom:6px}
+  .drop-card h3{font-size:15px;color:#fff;margin-bottom:4px;font-weight:800}
+  .drop-card .sub{color:#9ab5d1;font-size:11.5px;margin-bottom:12px}
+  .drop-card .row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed #1f2937;font-size:12.5px;align-items:flex-start;gap:10px}
+  .drop-card .row:last-child{border:none}
+  .drop-card .row .k{color:#9ab5d1;flex-shrink:0;min-width:62px}
+  .drop-card .row .v{color:#dde6f0;text-align:right;flex:1;font-weight:600}
+
+  .note{background:rgba(255,183,77,.08);border-left:3px solid #ffb74d;padding:14px 18px;border-radius:6px;font-size:12.5px;color:#ffd699;margin:16px 0}
+  .note strong{color:#ffb74d}
+  .note.blue{background:rgba(96,165,250,.08);border-left-color:#60a5fa;color:#a8c5e8}
+  .note.blue strong{color:#60a5fa}
+
+  /* 规则卡（核心） */
+  .rule-cards{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:24px}
+  @media(max-width:900px){.rule-cards{grid-template-columns:1fr}}
+  .rule-card{background:#0f1923;border:1px solid #1f2937;border-radius:14px;overflow:hidden;border-top:4px solid;box-shadow:0 4px 16px rgba(0,0,0,.3)}
+  .rule-card.s{border-top-color:#ff4655}
+  .rule-card.a{border-top-color:#c084fc}
+  .rule-card.b{border-top-color:#60a5fa}
+  .rule-card.c{border-top-color:#4ade80}
+  .rc-header{padding:14px 18px;border-bottom:1px solid #1f2937;background:#0a0e13;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+  .rc-tag{font-size:14px;font-weight:800;color:#fff}
+  .rule-card.s .rc-tag{color:#ff4655}
+  .rule-card.a .rc-tag{color:#c084fc}
+  .rule-card.b .rc-tag{color:#60a5fa}
+  .rule-card.c .rc-tag{color:#4ade80}
+  .rc-meta{font-size:11.5px;color:#9ab5d1}
+  .rc-section{padding:16px 18px;border-bottom:1px solid #1f2937;position:relative}
+  .rc-section:last-child{border-bottom:none}
+  .rc-section.blue{background:rgba(96,165,250,.06)}
+  .rc-section.red{background:rgba(255,70,85,.06)}
+  .rc-section-title{font-size:12px;font-weight:700;margin-bottom:12px;letter-spacing:.5px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .rc-section.blue .rc-section-title{color:#60a5fa}
+  .rc-section.red .rc-section-title{color:#ff4655}
+  .rc-badge{font-size:10px;font-weight:800;padding:2px 8px;border-radius:4px;letter-spacing:.5px}
+  .rc-section.blue .rc-badge{background:#60a5fa;color:#0a0e13}
+  .rc-section.red .rc-badge{background:#ff4655;color:#0a0e13}
+  .rc-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+  .rc-item{background:#0a0e13;border:1px solid #1f2937;border-radius:8px;padding:10px 12px}
+  .rc-item-l{font-size:10.5px;color:#9ab5d1;margin-bottom:3px}
+  .rc-item-v{font-size:15px;font-weight:800;color:#ffb74d;font-variant-numeric:tabular-nums}
+  .rc-section.blue .rc-item-v{color:#60a5fa}
+  .rc-section.red .rc-item-v{color:#ff4655}
+  .rc-detail{font-size:11.5px;color:#9ab5d1;line-height:1.6;padding:8px 0 0;border-top:1px dashed #1f2937;margin-top:8px}
+
+  /* 速查表 */
+  .quick-ref{background:#0f1923;border:1px solid #1f2937;border-radius:12px;overflow:hidden;margin-bottom:24px}
+  .qr-row{display:grid;grid-template-columns:80px 1fr 1fr;gap:0;border-bottom:1px solid #1f2937}
+  .qr-row:last-child{border-bottom:none}
+  .qr-row.head{background:#0a0e13;font-size:11px;color:#9ab5d1;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+  .qr-row.head > div{padding:10px 14px}
+  .qr-tier{padding:12px 14px;font-weight:800;display:flex;align-items:center;border-right:1px solid #1f2937}
+  .qr-tier.s{background:rgba(255,70,85,.08);color:#ff4655}
+  .qr-tier.a{background:rgba(192,132,252,.08);color:#c084fc}
+  .qr-tier.b{background:rgba(96,165,250,.08);color:#60a5fa}
+  .qr-tier.c{background:rgba(74,222,128,.08);color:#4ade80}
+  .qr-cell{padding:12px 14px;font-size:13px;color:#dde6f0}
+  .qr-cell.regular{background:rgba(96,165,250,.04);border-right:1px solid #1f2937}
+  .qr-cell.buff{background:rgba(255,70,85,.04)}
+  .qr-cell strong{color:#ffb74d;font-weight:800}
+  .qr-cell .v{display:inline-block;padding:1px 6px;border-radius:3px;font-weight:700;font-size:12px;margin:0 2px}
+  .qr-cell .v.n{background:rgba(96,165,250,.15);color:#60a5fa}
+  .qr-cell .v.m{background:rgba(74,222,128,.15);color:#4ade80}
+  .qr-cell .v.r{background:rgba(255,70,85,.15);color:#ff4655}
+
+  /* 术语规范条 */
+  .term-bar{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:28px}
+  @media(max-width:768px){.term-bar{grid-template-columns:1fr}}
+  .term-card{background:linear-gradient(135deg,#0f1923,#0a0e13);border:1px solid #1f2937;border-radius:12px;padding:18px 22px;border-left:4px solid}
+  .term-card.fixed{border-left-color:#60a5fa}
+  .term-card.zonal{border-left-color:#4ade80}
+  .term-card .term-name{font-size:18px;font-weight:900;color:#fff;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+  .term-card.fixed .term-name{color:#60a5fa}
+  .term-card.zonal .term-name{color:#4ade80}
+  .term-card .term-formula{font-family:'SF Mono','Monaco',monospace;font-size:12px;background:#0a0e13;padding:6px 10px;border-radius:5px;color:#ffb74d;margin:8px 0;display:inline-block;border:1px solid #1f2937}
+  .term-card .term-desc{font-size:12px;color:#9ab5d1;line-height:1.6}
+
+  /* 中奖率拼接条 */
+  .rate-stack{background:#0f1923;border:1px solid #1f2937;border-radius:12px;padding:14px 18px;margin-bottom:24px}
+  .rs-row{display:grid;grid-template-columns:50px 1fr 90px;gap:12px;align-items:center;padding:10px 0;border-bottom:1px dashed #1f2937}
+  .rs-row:last-child{border-bottom:none}
+  .rs-tier{font-size:14px;font-weight:900;text-align:center;padding:6px 0;border-radius:6px}
+  .rs-row .rs-tier.s{background:rgba(255,70,85,.15);color:#ff4655}
+  .rs-row .rs-tier.a{background:rgba(192,132,252,.15);color:#c084fc}
+  .rs-row .rs-tier.b{background:rgba(96,165,250,.15);color:#60a5fa}
+  .rs-row .rs-tier.c{background:rgba(74,222,128,.15);color:#4ade80}
+  .rs-bar{display:flex;height:30px;border-radius:6px;overflow:hidden;background:#0a0e13;border:1px solid #1f2937}
+  .rs-fill{display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;transition:.3s}
+  .rs-fill span{padding:0 6px;text-shadow:0 1px 2px rgba(0,0,0,.6)}
+  .rs-fill.rs-reg{background:linear-gradient(90deg,#3b82f6,#60a5fa)}
+  .rs-fill.rs-zone{background:linear-gradient(90deg,#ff4655,#ffb74d)}
+  .rs-target{font-size:13px;color:#dde6f0;text-align:right}
+  .rs-target strong{color:#ffb74d;font-size:15px}
+
+  /* 6 slot 排程 */
+  .slot-schedule{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:24px}
+  @media(max-width:900px){.slot-schedule{grid-template-columns:1fr}}
+  .slot-card{background:#0f1923;border:1px solid #1f2937;border-radius:12px;overflow:hidden;border-top:4px solid}
+  .slot-card.s{border-top-color:#ff4655}
+  .slot-card.a{border-top-color:#c084fc}
+  .slot-card.b{border-top-color:#60a5fa}
+  .slot-card.c{border-top-color:#4ade80}
+  .slot-head{padding:14px 18px;background:#0a0e13;border-bottom:1px solid #1f2937;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+  .slot-head .slot-tag{font-size:14px;font-weight:800;color:#fff}
+  .slot-card.s .slot-tag{color:#ff4655}
+  .slot-card.a .slot-tag{color:#c084fc}
+  .slot-card.b .slot-tag{color:#60a5fa}
+  .slot-card.c .slot-tag{color:#4ade80}
+  .slot-head .slot-meta{font-size:11.5px;color:#9ab5d1}
+  .slot-mode{padding:14px 18px;background:rgba(96,165,250,.05);border-bottom:1px solid #1f2937}
+  .slot-mode.peak{background:rgba(255,70,85,.05)}
+  .slot-mode-title{font-size:11.5px;font-weight:800;letter-spacing:.5px;color:#60a5fa;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+  .slot-mode.peak .slot-mode-title{color:#ff4655}
+  .slot-mode-badge{font-size:10px;font-weight:800;padding:2px 8px;border-radius:4px;background:#60a5fa;color:#0a0e13}
+  .slot-mode.peak .slot-mode-badge{background:#ff4655}
+  /* BO3 分组 */
+  .bo3-group{margin-top:8px;border:1px solid rgba(96,165,250,.25);border-radius:8px;overflow:hidden;background:rgba(10,14,19,.4)}
+  .bo3-group + .bo3-group{margin-top:10px}
+  .slot-mode.peak .bo3-group{border-color:rgba(255,70,85,.25)}
+  .bo3-label{font-size:10.5px;font-weight:800;padding:5px 10px;background:rgba(96,165,250,.12);color:#60a5fa;letter-spacing:.5px;display:flex;justify-content:space-between;align-items:center}
+  .slot-mode.peak .bo3-label{background:rgba(255,70,85,.12);color:#ff4655}
+  .bo3-label .bo3-tag{font-size:9.5px;font-weight:600;color:#9ab5d1;letter-spacing:.3px}
+  .bo3-body{padding:0 10px}
+  .slot-row{display:grid;grid-template-columns:42px 1fr 100px;gap:8px;padding:7px 4px;border-bottom:1px dashed #1f2937;font-size:12px;align-items:center}
+  .slot-row:last-child{border-bottom:none}
+  .slot-num{font-family:'SF Mono','Monaco',monospace;font-size:10.5px;font-weight:700;color:#9ab5d1;background:#0a0e13;padding:3px 6px;border-radius:4px;text-align:center}
+  .slot-time{font-weight:600;color:#dde6f0}
+  .slot-time .ts{display:block;font-size:10px;color:#9ab5d1;font-weight:400}
+  .slot-prize{font-size:11px;font-weight:800;padding:3px 8px;border-radius:5px;text-align:center;letter-spacing:.3px}
+  .slot-prize.p-suit{background:rgba(255,70,85,.15);color:#ff4655;border:1px solid rgba(255,70,85,.3)}
+  .slot-prize.p-knife{background:rgba(255,183,77,.15);color:#ffb74d;border:1px solid rgba(255,183,77,.3)}
+  .slot-prize.p-gun{background:rgba(192,132,252,.15);color:#c084fc;border:1px solid rgba(192,132,252,.3)}
+  .slot-prize.p-pack{background:rgba(96,165,250,.15);color:#60a5fa;border:1px solid rgba(96,165,250,.3)}
+  .slot-prize.p-other{background:rgba(74,222,128,.15);color:#4ade80;border:1px solid rgba(74,222,128,.3)}
+  .slot-summary{padding:12px 18px;background:rgba(255,183,77,.06);border-top:1px solid #1f2937;font-size:11.5px;color:#ffd699;line-height:1.6}
+  .slot-summary strong{color:#ffb74d}
+  /* 全区掉落额外行 */
+  .zone-extra{margin-top:10px;padding:10px 12px;background:linear-gradient(135deg,rgba(255,70,85,.12),rgba(255,183,77,.08));border:1px dashed rgba(255,70,85,.4);border-radius:8px;font-size:11.5px;color:#ffd699;line-height:1.5}
+  .zone-extra strong{color:#ff4655}
+
+  /* Buff 加场矩阵 */
+  .buff-matrix{background:#0f1923;border:1px solid #1f2937;border-radius:12px;overflow:hidden;margin-bottom:24px}
+  .bm-row{display:grid;grid-template-columns:90px 1fr 1fr 1fr;border-bottom:1px solid #1f2937}
+  .bm-row:last-child{border-bottom:none}
+  .bm-row.head{background:#0a0e13;font-size:11px;color:#9ab5d1;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+  .bm-row.head > div{padding:10px 14px}
+  .bm-tier{padding:14px;font-weight:800;display:flex;align-items:center;border-right:1px solid #1f2937}
+  .bm-tier.s{background:rgba(255,70,85,.08);color:#ff4655}
+  .bm-tier.a{background:rgba(192,132,252,.08);color:#c084fc}
+  .bm-tier.b{background:rgba(96,165,250,.08);color:#60a5fa}
+  .bm-tier.c{background:rgba(74,222,128,.08);color:#4ade80}
+  .bm-cell{padding:14px;font-size:12.5px;color:#dde6f0;border-right:1px solid #1f2937;line-height:1.55}
+  .bm-cell:last-child{border-right:none}
+  .bm-cell .lbl{display:block;color:#9ab5d1;font-size:10.5px;margin-bottom:2px;text-transform:uppercase;letter-spacing:.3px}
+  .bm-cell .val{font-weight:800;color:#ffb74d;font-variant-numeric:tabular-nums}
+
+  .footer{text-align:center;color:#9ab5d1;font-size:12px;padding:30px 0 50px;border-top:1px solid #1f2937;margin-top:40px}
+  .footer a{color:#ff4655;text-decoration:none}
+
+  @media(max-width:768px){
+    .hero h1{font-size:26px}
+    .tier-bar{flex-direction:column;gap:12px;text-align:center;padding:14px}
+    .tier-left{min-width:0;justify-content:center}
+    .tier-stats{width:100%;justify-content:space-around}
+    .tier-stat{min-width:0;padding:0 6px}
+    .tier-stat .v{font-size:14px}
+    .tier-S,.tier-A,.tier-B,.tier-C{width:100% !important}
+    .bm-row{grid-template-columns:1fr;gap:0}
+    .bm-tier{border-right:none;border-bottom:1px solid #1f2937}
+    .bm-cell{border-right:none;border-bottom:1px solid #1f2937}
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+<div style="max-width:1100px;margin:0 auto;padding:50px 32px 30px;text-align:center">
+  <h1 style="font-size:36px;font-weight:900;letter-spacing:1px;background:linear-gradient(135deg,#ff4655,#ffb74d);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:0 0 12px">VALORANT 赛事现场掉落体系</h1>
+  <p style="color:#9ab5d1;font-size:14px;margin:0">合作方对外简介 · 数据均为对外公开口径 · 票价 / 中奖率 / 中奖期望已向上取整便于沟通</p>
+</div>
+
+
+    <div class="section-title">📊 VCT 赛事一览</div>
+    <p class="section-desc">VALORANT 全球冠军赛体系 4 档赛事 · 全年 8 场 · 总观众 34 万人次</p>
+
+    <!-- 简化版金字塔（同顶部样式但用取整数据） -->
+    <div class="pyramid" style="margin-bottom:30px">
+      <div class="pyramid-row"><div class="tier-bar tier-S">
+        <div class="tier-left"><div class="tier-badge">S</div><div class="tier-info"><h3>冠军赛</h3><p>1 场/年 · 上海 · 顶级国际赛事</p></div></div>
+        <div class="tier-stats">
+          <div class="tier-stat"><div class="v unit">¥130</div><div class="l">单次中奖均价</div></div>
+          <div class="tier-stat"><div class="v rate">20%</div><div class="l">中奖率</div></div>
+          <div class="tier-stat"><div class="v ticket">¥600</div><div class="l">票价均价</div></div>
+          <div class="tier-stat"><div class="v exp">21.6万</div><div class="l">总观众</div></div>
+        </div>
+      </div></div>
+      <div class="pyramid-row"><div class="tier-bar tier-A">
+        <div class="tier-left"><div class="tier-badge">A</div><div class="tier-info"><h3>大师赛</h3><p>2 场/年 · 国际赛事</p></div></div>
+        <div class="tier-stats">
+          <div class="tier-stat"><div class="v unit">¥135</div><div class="l">单次中奖均价</div></div>
+          <div class="tier-stat"><div class="v rate" style="color:#c084fc">15%</div><div class="l">中奖率</div></div>
+          <div class="tier-stat"><div class="v ticket">¥450</div><div class="l">票价均价</div></div>
+          <div class="tier-stat"><div class="v exp">8万</div><div class="l">总观众</div></div>
+        </div>
+      </div></div>
+      <div class="pyramid-row"><div class="tier-bar tier-B">
+        <div class="tier-left"><div class="tier-badge">B</div><div class="tier-info"><h3>巡回赛季后赛</h3><p>2 场/年 · 国内顶赛</p></div></div>
+        <div class="tier-stats">
+          <div class="tier-stat"><div class="v unit">¥145</div><div class="l">单次中奖均价</div></div>
+          <div class="tier-stat"><div class="v rate" style="color:#60a5fa">12%</div><div class="l">中奖率</div></div>
+          <div class="tier-stat"><div class="v ticket">¥400</div><div class="l">票价均价</div></div>
+          <div class="tier-stat"><div class="v exp">2.2万</div><div class="l">总观众</div></div>
+        </div>
+      </div></div>
+      <div class="pyramid-row"><div class="tier-bar tier-C">
+        <div class="tier-left"><div class="tier-badge">C</div><div class="tier-info"><h3>季中赛 + 启点赛</h3><p>3 场/年 · 国内常规</p></div></div>
+        <div class="tier-stats">
+          <div class="tier-stat"><div class="v unit">¥120</div><div class="l">单次中奖均价</div></div>
+          <div class="tier-stat"><div class="v rate" style="color:#4ade80">10%</div><div class="l">中奖率</div></div>
+          <div class="tier-stat"><div class="v ticket">¥300</div><div class="l">票价均价</div></div>
+          <div class="tier-stat"><div class="v exp">1.8万</div><div class="l">总观众</div></div>
+        </div>
+      </div></div>
+    </div>
+
+    <!-- 标准表格 -->
+    <div class="section-title" style="margin-top:36px">📋 数据汇总表</div>
+    <p class="section-desc">数据均为对外公开口径 · 票价取赛事档位均价 · 中奖率与中奖期望已向上取整</p>
+
+    <div class="table-wrap">
+      <table class="t">
+        <colgroup><col style="width:24%"><col style="width:13%"><col style="width:14%"><col style="width:13%"><col style="width:13%"><col style="width:11%"><col style="width:12%"></colgroup>
+        <thead>
+          <tr>
+            <th>等级</th>
+            <th>赛事</th>
+            <th>开票总观众</th>
+            <th>票价均价</th>
+            <th>中奖率</th>
+            <th>单次中奖均价</th>
+            <th>年场次</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="pill s">S 冠军赛</span></td>
+            <td>上海冠军赛</td>
+            <td class="num">216,000</td>
+            <td class="num" style="color:#ffb74d">¥600</td>
+            <td class="num" style="color:#ff4655">20%</td>
+            <td class="num" style="color:#4ade80">¥130</td>
+            <td class="num">1 场</td>
+          </tr>
+          <tr>
+            <td><span class="pill a">A 大师赛</span></td>
+            <td>圣地亚哥 / 伦敦</td>
+            <td class="num">80,000</td>
+            <td class="num" style="color:#ffb74d">¥450</td>
+            <td class="num" style="color:#c084fc">15%</td>
+            <td class="num" style="color:#4ade80">¥135</td>
+            <td class="num">2 场</td>
+          </tr>
+          <tr>
+            <td><span class="pill b">B 季后赛</span></td>
+            <td>北京 / 重庆</td>
+            <td class="num">22,000</td>
+            <td class="num" style="color:#ffb74d">¥400</td>
+            <td class="num" style="color:#60a5fa">12%</td>
+            <td class="num" style="color:#4ade80">¥145</td>
+            <td class="num">2 场</td>
+          </tr>
+          <tr>
+            <td><span class="pill c">C 季中+启点</span></td>
+            <td>杭州 / 广州</td>
+            <td class="num">18,000</td>
+            <td class="num" style="color:#ffb74d">¥300</td>
+            <td class="num" style="color:#4ade80">10%</td>
+            <td class="num" style="color:#4ade80">¥120</td>
+            <td class="num">3 场</td>
+          </tr>
+          <tr style="background:rgba(255,183,77,.06)">
+            <td colspan="2" style="text-align:right;color:#9ab5d1"><strong>VCT 全年合计</strong></td>
+            <td class="num" style="color:#ffb74d;font-size:14px"><strong>34 万人次</strong></td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+            <td class="num"><strong>8 场</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note blue">
+      <strong>📖 字段口径（对外说明）：</strong><br>
+      · <strong>开票总观众</strong>：单场赛事所有比赛日累计入场人次（非独立观众数）<br>
+      · <strong>票价均价</strong>：所有票档加权平均，区间档位详见赛事官方公告<br>
+      · <strong>中奖率</strong>：现场观众参与本场赛事掉落抽奖的中奖概率<br>
+      · <strong>单次中奖均价</strong>：中奖一次平均能拿到的奖品价值（套装/刀皮/枪皮/战队礼包加权）<br>
+      · <strong>奖品组合</strong>：枪皮 ¥149 / 刀皮 ¥298 / 套装 ¥596 / 战队礼包 ¥162（基于 VALORANT 国服公开售价）
+    </div>
+
+    <!-- 常规方案 -->
+    <div class="section-title" style="margin-top:36px">🎯 常规方案（每日必发）</div>
+    <p class="section-desc">每局 3 次固定掉落（手枪局 / 半场 / 赛后） · 一天 2 个 BO3 = 4-6 局 = 12-18 次/日 · 每次掉落全场抽 n 人</p>
+
+    <div class="table-wrap">
+      <table class="t">
+        <colgroup><col style="width:22%"><col style="width:13%"><col style="width:14%"><col style="width:14%"><col style="width:13%"><col style="width:11%"><col style="width:13%"></colgroup>
+        <thead>
+          <tr>
+            <th>等级</th>
+            <th>每次 n 人</th>
+            <th>每局次数</th>
+            <th>每日掉落</th>
+            <th>比赛天数</th>
+            <th>赛程总位</th>
+            <th>常规中奖率</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="pill s">S 冠军赛</span></td>
+            <td class="num" style="color:#60a5fa">120 人</td>
+            <td class="num">3 次</td>
+            <td class="num">12-18 次</td>
+            <td class="num">18 天</td>
+            <td class="num">32,400</td>
+            <td class="num" style="color:#ff4655">~15%</td>
+          </tr>
+          <tr>
+            <td><span class="pill a">A 大师赛</span></td>
+            <td class="num" style="color:#60a5fa">40 人</td>
+            <td class="num">3 次</td>
+            <td class="num">12-18 次</td>
+            <td class="num">16 天</td>
+            <td class="num">9,600</td>
+            <td class="num" style="color:#c084fc">~12%</td>
+          </tr>
+          <tr>
+            <td><span class="pill b">B 季后赛</span></td>
+            <td class="num" style="color:#60a5fa">16 人</td>
+            <td class="num">3 次</td>
+            <td class="num">12-18 次</td>
+            <td class="num">9 天</td>
+            <td class="num">2,160</td>
+            <td class="num" style="color:#60a5fa">~10%</td>
+          </tr>
+          <tr>
+            <td><span class="pill c">C 季中+启点</span></td>
+            <td class="num" style="color:#60a5fa">6 人</td>
+            <td class="num">3 次</td>
+            <td class="num">12-18 次</td>
+            <td class="num">17 天</td>
+            <td class="num">1,530</td>
+            <td class="num" style="color:#4ade80">~8.5%</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Buff 加场 -->
+    <div class="section-title" style="margin-top:36px">🌊 Buff 加场（高峰日全区掉落）</div>
+    <p class="section-desc">在常规之外，高峰日（决赛/半决赛日）额外加场 · 全区掉落 = 当日观众的 1/10 同时中奖 · 用于现场情绪高潮位</p>
+
+    <div class="table-wrap">
+      <table class="t">
+        <colgroup><col style="width:22%"><col style="width:14%"><col style="width:14%"><col style="width:14%"><col style="width:13%"><col style="width:23%"></colgroup>
+        <thead>
+          <tr>
+            <th>等级</th>
+            <th>高峰日数</th>
+            <th>全区/日</th>
+            <th>全区单次</th>
+            <th>赛程总加场</th>
+            <th>当日总中奖率（高峰日）</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="pill s">S 冠军赛</span></td>
+            <td class="num">5 天</td>
+            <td class="num" style="color:#ff4655">2 次</td>
+            <td class="num">~1,200 人</td>
+            <td class="num">10 次 / 12,000 人</td>
+            <td class="num" style="color:#ffb74d">~35%</td>
+          </tr>
+          <tr>
+            <td><span class="pill a">A 大师赛</span></td>
+            <td class="num">4 天</td>
+            <td class="num" style="color:#ff4655">2 次</td>
+            <td class="num">~500 人</td>
+            <td class="num">8 次 / 4,000 人</td>
+            <td class="num" style="color:#ffb74d">~32%</td>
+          </tr>
+          <tr>
+            <td><span class="pill b">B 季后赛</span></td>
+            <td class="num">2 天<span style="color:#9ab5d1;font-size:11px">（半决/决赛日）</span></td>
+            <td class="num" style="color:#ff4655">1 次</td>
+            <td class="num">~240 人</td>
+            <td class="num">2 次 / 480 人</td>
+            <td class="num" style="color:#ffb74d">~20%</td>
+          </tr>
+          <tr>
+            <td><span class="pill c">C 季中+启点</span></td>
+            <td class="num">3 天</td>
+            <td class="num" style="color:#ff4655">1 次</td>
+            <td class="num">~105 人</td>
+            <td class="num">3 次 / 315 人</td>
+            <td class="num" style="color:#ffb74d">~18%</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note">
+      <strong>🎯 合作方营销话术建议：</strong><br>
+      · <strong>S 冠军赛</strong>：单场 21.6 万人次，每 5 人就有 1 人中奖，奖品均价 ¥130，是品牌曝光的顶级国际场<br>
+      · <strong>A 大师赛</strong>：单场 8 万人次，每 7 人有 1 人中奖（国际赛事），覆盖全球瓦罗兰特核心粉丝<br>
+      · <strong>B 季后赛</strong>：国内顶赛，<strong style="color:#ffb74d">单次中奖均价 ¥145 全年最高</strong>，是赛季冠军决出夜的传播节点<br>
+      · <strong>C 季中+启点</strong>：长线高频曝光，3 场覆盖广州/杭州/重庆三大区域市场，年触达 1.8 万核心观众<br>
+      · <strong style="color:#ffb74d">高峰日封顶</strong>：单日总中奖率 ≤ 40%（常规 + 全区加场），既保证现场高潮又控制奖品池压力
+    </div>
+</div>
+
+<div class="footer" style="text-align:center;color:#7891ad;font-size:11.5px;padding:30px 20px;margin-top:40px;border-top:1px solid #1f2937">
+  VALORANT 赛事现场掉落体系 · 合作方对外版 · 数据为内部测算口径
+</div>
+
+</body>
+</html>
